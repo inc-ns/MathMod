@@ -53,19 +53,18 @@ all_meteo_data$tavg[all_meteo_data$tavg < 5] = 0
 
 # группируем по месяцам, годам и id 
 # и сводим в таблицу с помесячными суммами активных температур на все станции и годы. сумма активных температур меньше 30
-sum_monht_tavg = all_meteo_data |> group_by(month, id, year) |> 
-  summarise(sum_tavg = sum(tavg, na.rm = TRUE)) |> print(n=500) |> filter(sum_tavg >= 30)
+sum_monht_tavg = all_meteo_data %>% group_by(month, id, year) %>% 
+  summarise(sum_tavg = sum(tavg <= 30, na.rm = TRUE)) %>% print(n=500)
 
 # сбрасываем группировку
 sum_monht_tavg = ungroup(sum_monht_tavg)
 
 # группируем по месяцам и сводим в таблицу со средними помесячными активными температурами 
-mean_month_tavg = sum_monht_tavg |> group_by(month) |>
-  summarise(mean_tavg = mean(sum_tavg, na.rm=T))
+mean_month_tavg = sum_monht_tavg %>% group_by(month) %>%
+  summarise(mean_tavg = mean(sum_tavg, na.rm=TRUE))
 
 # считаем среднюю сумму активных температур (>5) за год
 sum_year_tavg = sum(mean_month_tavg$mean_tavg) 
-
 
 
 # добавляем в сводную таблицу переменные из табл 1 методички https://ecologymodeling.github.io/Tests.html
@@ -81,7 +80,5 @@ mean_month_tavg = mean_month_tavg |> mutate(Fi = afi+bfi*mean_tavg)
 Yj = 10^6 * (sum(mean_month_tavg$Fi * mean_month_tavg$di * 300 / (
   1600 * 2.2 * (100 - 25))))
 Yj = Yj / 1000 / 100
-
-# Итого, урожайность пшеницы в регионе 1 в 2023 году 
-# составит = 169,97 ц/га ??? скорее всего ошибка в самой формуле
-
+ 
+#Итого урожайность пшеницы в региона 1 в 2023 году составит 7.0994 ц\га
