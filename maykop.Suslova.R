@@ -48,13 +48,15 @@ all_meteo_data = all_meteo_data |> filter(year > 2017 & year < 2023)
 all_meteo_data = all_meteo_data |> mutate(
   prcp = prcp /10, snwd = snwd /10, tavg = tavg /10, tmax =tmax/10, tmin = tmin/10)
 
-# в векторе можно подменить все значения меньше 5 на 0 (делаем это через substitute)
-all_meteo_data$tavg[all_meteo_data$tavg < 5] = 0
+# в векторе можно подменить все значения меньше 30 и 5 на 0 (делаем это через substitute)
+all_meteo_data$tavg[all_meteo_data$tavg > 30 ] = 0 
+  all_meteo_data$tavg[all_meteo_data$tavg < 5 ] = 0
+
 
 # группируем по месяцам, годам и id 
-# и сводим в таблицу с помесячными суммами активных температур на все станции и годы. сумма активных температур меньше 30
-sum_monht_tavg = all_meteo_data %>% group_by(month, id, year) %>% 
-  summarise(sum_tavg = sum(tavg <= 30, na.rm = TRUE)) %>% print(n=500)
+# и сводим в таблицу с помесячными суммами активных температур на все станции и годы
+sum_monht_tavg = all_meteo_data |> group_by(month, id, year) |> 
+  summarise(sum_tavg = sum(tavg, na.rm = TRUE)) |> print(n=500) 
 
 # сбрасываем группировку
 sum_monht_tavg = ungroup(sum_monht_tavg)
@@ -63,7 +65,7 @@ sum_monht_tavg = ungroup(sum_monht_tavg)
 mean_month_tavg = sum_monht_tavg %>% group_by(month) %>%
   summarise(mean_tavg = mean(sum_tavg, na.rm=TRUE))
 
-# считаем среднюю сумму активных температур (>5) за год
+# считаем среднюю сумму активных температур (>5 и  <30) за год
 sum_year_tavg = sum(mean_month_tavg$mean_tavg) 
 
 
@@ -80,5 +82,5 @@ mean_month_tavg = mean_month_tavg |> mutate(Fi = afi+bfi*mean_tavg)
 Yj = 10^6 * (sum(mean_month_tavg$Fi * mean_month_tavg$di * 300 / (
   1600 * 2.2 * (100 - 25))))
 Yj = Yj / 1000 / 100
- 
-#Итого урожайность пшеницы в региона 1 в 2023 году составит 7.0994 ц\га
+
+#Итого урожайность пшеницы в региона 1 в 2023 году составит 120.9570 ц\га
